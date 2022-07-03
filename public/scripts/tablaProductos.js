@@ -1,3 +1,4 @@
+const socket = io();
 import { faker } from 'https://cdn.skypack.dev/@faker-js/faker';
 faker.setLocale('es');
 const productos = [];
@@ -16,10 +17,13 @@ const generarProductos = ()=>{
 
 generarProductos();
 
+let contenido = '';
+
+let sinProductos = document.getElementById('sin-productos');
 let tablaProductos = document.getElementById('table-body-productos');
 
 if(productos.length > 0 ){
-    //sinProductos.innerHTML = ''
+    sinProductos.innerHTML = ''
     tablaProductos.innerHTML = productos.map(producto=>{
         return(
             `<tr>
@@ -37,3 +41,57 @@ if(productos.length > 0 ){
 
     sinProductos.innerHTML = contenido;
 }   
+
+let btnChat = document.getElementById('btn-chat');
+
+btnChat.addEventListener('click', (e)=>{
+    let inputEmail = document.getElementById('email');
+    let inputMensaje = document.getElementById('mensaje');
+    let inputNombre = document.getElementById('nombre');
+    let inputApellido = document.getElementById('apellido');
+    let inputEdad = document.getElementById('edad');
+    let inputAlias = document.getElementById('alias');
+    let inputAvatar = document.getElementById('avatar');
+    let error = document.getElementById('error-mensajes');
+
+    if(inputEmail.value == ''){
+        error.style.display = 'inline-block';
+        return
+    }else{
+        error.style.display = 'none';
+        const mensaje = {
+            author:{
+                id: inputEmail.value,
+                nombre: inputNombre.value,
+                apellido: inputApellido.value,
+                edad: inputEdad.value,
+                alias: inputAlias.value,
+                avatar: inputAvatar.value,
+                fecha: new Date().toLocaleString(),
+            },
+            text: inputMensaje.value,
+        }
+
+        socket.emit('nuevo-mensaje', mensaje);
+        inputMensaje.value = '';
+    }
+})
+
+let divMensajes = document.getElementById('mensajes');
+
+socket.on('mensajes', (mensajes)=>{
+    console.log(mensajes);
+    if(mensajes){
+        divMensajes.innerHTML = mensajes.map(mensaje=>{
+            return(
+                `<div class="cuerpo-mensaje mt-2">
+                    <img src="${mensaje.author.avatar}" width="60px"/>
+                    <span class="email">${mensaje.author.id} </span>
+                    <span class="fecha">[${mensaje.author.fecha}]: </span>
+                    <span class="mensaje">${mensaje.text}</span>
+                </div>`
+            )
+        }).join(" ")
+    }
+    
+})

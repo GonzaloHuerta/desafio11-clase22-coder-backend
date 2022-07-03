@@ -1,9 +1,8 @@
 import express from 'express';
 import http from 'http'
 import {Server as ioServer} from 'socket.io';
-import Contenedor from './contenedor.js';
-import {options} from './db/configDB.js';
 import path from 'path';
+import {mensajesDao as api} from './src/daos/index.js';
 const app = express();
 import {fileURLToPath} from 'url';
 
@@ -18,12 +17,10 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-const contenedorProductos = new Contenedor(options.mariaDB, 'productos');
-const contenedorMensajes = new Contenedor(options.sqlite, 'mensajes');
+//const mensajes = await contenedorMensajes.obtenerMensajes();
 
-const productos = await contenedorProductos.obtenerTodosLosProductos();
-const mensajes = await contenedorMensajes.obtenerMensajes();
-
+const mensajes = await api.getAll();
+const productos = [];
 //console.log("Productos: ", productos);
 console.log("Mensajes: ", mensajes);
 
@@ -35,29 +32,13 @@ app.get('/api/productos', (req, res)=>{
     res.sendFile(path.join(__dirname+'/public/views/tabla-productos.html'));
 })
 
-app.get('/productos', (req, res)=>{
-    res.json(contenedorProductos.obtenerTodosLosProductos());
-})
-
-app.post('/productos', async(req, res)=>{
-    const producto = req.body;
-    await contenedorProductos.guardarProducto(producto);
-    res.redirect('/')
-})
-
 io.on('connection', (socket)=>{
-    console.log("Cliente conectado", socket.id);
-    socket.emit('productos', productos);
+    console.log("Cliente conectado", socket.id);;
     socket.emit('mensajes', mensajes);
-
-    socket.on('nuevo-producto', (producto)=>{
-        productos.push(producto);
-        io.sockets.emit('productos', productos);
-    })
 
     socket.on('nuevo-mensaje', async(mensaje)=>{
         mensajes.push(mensaje);
-        await contenedorMensajes.guardarMensajes(mensaje);
+        await api.create(mensaje);
         console.log(mensajes)
         io.sockets.emit('mensajes', mensajes);
     })
