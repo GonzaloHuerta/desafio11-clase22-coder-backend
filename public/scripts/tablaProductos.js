@@ -28,7 +28,7 @@ if(productos.length > 0 ){
         return(
             `<tr>
                 <td>${producto.nombre}</td>
-                <td>${producto.precio}</td>
+                <td>$${producto.precio}</td>
                 <td><img src="${producto.foto}" alt="Imagen del producto" width="100" height="100" /></td>
             </tr>`
         )
@@ -67,8 +67,8 @@ btnChat.addEventListener('click', (e)=>{
                 edad: inputEdad.value,
                 alias: inputAlias.value,
                 avatar: inputAvatar.value,
-                fecha: new Date().toLocaleString(),
             },
+            fecha: new Date().toLocaleString(),
             text: inputMensaje.value,
         }
 
@@ -85,9 +85,9 @@ socket.on('mensajes', (mensajes)=>{
         divMensajes.innerHTML = mensajes.map(mensaje=>{
             return(
                 `<div class="cuerpo-mensaje mt-2">
-                    <img src="${mensaje.author.avatar}" width="60px"/>
+                    <img src="${mensaje.author.avatar}" width="50px" style="border-radius: 200px; height: 50px;"/>
                     <span class="email">${mensaje.author.id} </span>
-                    <span class="fecha">[${mensaje.author.fecha}]: </span>
+                    <span class="fecha">[${mensaje.fecha}]: </span>
                     <span class="mensaje">${mensaje.text}</span>
                 </div>`
             )

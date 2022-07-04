@@ -8,7 +8,7 @@ export const mensajesSchema = new mongoose.Schema({
         edad: Number,
         alias: String,
         avatar: String,
-        timestamp: Date,
     },
+    fecha: String,
     text: String
 });

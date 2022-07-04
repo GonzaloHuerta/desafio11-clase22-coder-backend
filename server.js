@@ -3,8 +3,12 @@ import http from 'http'
 import {Server as ioServer} from 'socket.io';
 import path from 'path';
 import {mensajesDao as api} from './src/daos/index.js';
-const app = express();
 import {fileURLToPath} from 'url';
+import { inspect } from 'util';
+import { normalize, schema, denormalize } from 'normalizr';
+
+
+const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,12 +21,33 @@ app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-//const mensajes = await contenedorMensajes.obtenerMensajes();
-
 const mensajes = await api.getAll();
 const productos = [];
-//console.log("Productos: ", productos);
+
 console.log("Mensajes: ", mensajes);
+
+//console.log(inspect(chatSinNormalizar, { depth: null }));
+
+const chat = {
+    id: '2022',
+    nombre: 'Centro de mensajes',
+    mensajes: mensajes
+}
+
+const authorsSchema = new schema.Entity('authors');
+
+const mensajeSchema = new schema.Entity('mensajes',{
+    author: authorsSchema, 
+})
+
+const chatSchema = new schema.Entity('chats',{
+    mensajes: [mensajeSchema]
+})
+
+const chatNormalizado = normalize(chat, chatSchema);
+
+console.log(inspect(chatNormalizado, false, 12, true));
+
 
 app.get('/', (req, res)=>{
     res.sendFile(path.join(__dirname+'/public/views/index.html'));
